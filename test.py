@@ -1,3 +1,4 @@
+from sklearn import metrics # it needs to be imported first in Jetson Nano
 import os
 import pickle
 from tqdm import tqdm
@@ -68,28 +69,31 @@ def main(args):
             if scheduler is not None:
                 scheduler.step()
             
-            pbar.set_description(f"[Task:{task_id+1}|Epoch:{epoch+1}] Avg Loss: {losses.avg:.5}")
+            # pbar.set_description(f"[Task:{task_id+1}|Epoch:{epoch+1}] Avg Loss: {losses.avg:.5}")
+            pbar.set_description("[Task:{}|Epoch:{}] Avg Loss: {:.5}".format(task_id+1, epoch+1, losses.avg))
+
         
         #- Start Evaluation
         accs = cifar10_verif_evaluator.fit(current_task_id=1, logger=None)
         metrics.append(accs)
     
         if args.save_path is not None:
+            args.save_path = os.path.join(args.save_path, method.NAME)
             create_if_not_exists(args.save_path)
             if args.save_model:
-                fname = os.path.join(args.save_path, method.NAME, f"{method.NAME}_{task_id+1}.pth")
+                fname = os.path.join(args.save_path, "{}_{}.pth".format(method.NAME, task_id+1))
                 torch.save(method.net.state_dict(), fname)
     
     if args.save_path is not None:           
         # save the metrics
-        fname = os.path.join(args.save_path, method.NAME, f"{method.NAME}.pkl")
+        fname = os.path.join(args.save_path, "{}.pkl".format(method.NAME))
         with open(file=fname, mode='wb') as f:
             pickle.dump({'ACC': np.array(metrics)}, f)
                 
     
 if __name__ == "__main__":
     class Config:
-        batch_size = 128
+        batch_size = 8
         lr = 0.01
         nowand = 1
         n_epochs = 3

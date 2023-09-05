@@ -155,7 +155,7 @@ class CIFARPairDataset(Dataset):
 
         image = (query_data, retrieval_data)
 
-        return *image, retrieval_targets
+        return query_data, retrieval_data, retrieval_targets
 
 
 # @register_dataset("paircifar10")
