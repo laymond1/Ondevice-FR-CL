@@ -44,6 +44,11 @@ def main(args):
     # def set_loggers()
     #     raise NotImplementedError
     
+    # save path
+    if args.save_path is not None:
+        args.save_path = os.path.join(args.save_path, method.NAME)
+        create_if_not_exists(args.save_path)
+    
     metrics = []
     # train
     method.train()
@@ -78,8 +83,6 @@ def main(args):
         metrics.append(accs)
     
         if args.save_path is not None:
-            args.save_path = os.path.join(args.save_path, method.NAME)
-            create_if_not_exists(args.save_path)
             if args.save_model:
                 fname = os.path.join(args.save_path, "{}_{}.pth".format(method.NAME, task_id+1))
                 torch.save(method.net.state_dict(), fname)
