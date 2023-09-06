@@ -4,7 +4,7 @@ from torchvision import transforms, datasets
 from .continual_dataset import ContinualDataset
 
 
-__all__ = ["CASIAWebDataset"]
+__all__ = ["CASIAWebDataset", "CASIAWeb15Dataset"]
 
 class FaceDataset(ContinualDataset):
     
@@ -65,3 +65,9 @@ class CASIAWebDataset(FaceDataset):
     _DATA_TYPE = "casiaweb"
     _DEFAULT_N_TASKS = 5
     _N_CLASSES_PER_TASK = 1000
+
+
+class CASIAWeb15Dataset(FaceDataset):
+    _DATA_TYPE = "casiaweb-15"
+    _DEFAULT_N_TASKS = 5
+    _N_CLASSES_PER_TASK = 3
