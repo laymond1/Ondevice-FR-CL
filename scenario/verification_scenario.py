@@ -31,7 +31,7 @@ class VerificationScenario:
         """        
 
         self.dataset = dataset
-        self.n_tasks = n_tasks
+        self.n_tasks = n_tasks # n_tasks is not used in this class.
         self.batch_size = batch_size
         self.n_workers = n_workers
 

@@ -74,7 +74,7 @@ class VerificationEvaluator(BaseEvaluator):
 
     def on_eval_start(self):
         """ """
-        self.method.eval()
+        self.method.net.eval()
 
     def on_eval_end(self, tasks_acc: float, tasks_auc: float, current_task_id: int) -> None:
         """Representation Evluation Setting is not divided into tasks.
@@ -84,7 +84,7 @@ class VerificationEvaluator(BaseEvaluator):
         # self.logger.write_txt(msg=msg)
         print(msg)
         
-        self.method.train()
+        self.method.net.train()
 
     def fit(self, current_task_id: int, logger: str) -> None:
         """_summary_
