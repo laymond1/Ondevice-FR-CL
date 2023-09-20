@@ -1,6 +1,10 @@
+from copy import deepcopy
+
 import torch
+import torch.nn.functional as F
 
 from torch.optim import SGD
+from torchvision.transforms import transforms
 
 from models import ContinualModel
 
@@ -28,6 +32,7 @@ class LwF(ContinualModel):
         self.cpt = args.N_CLASSES_PER_TASK
         nc = args._DEFAULT_N_TASKS * self.cpt
         self.eye = torch.tril(torch.ones((nc, nc))).bool().to(self.device)
+        self.totensor = transforms.ToTensor()
 
     def begin_task(self, loader):
         self.net.eval()
@@ -36,26 +41,26 @@ class LwF(ContinualModel):
             opt = SGD(self.net.classifier.parameters(), lr=self.args.lr)
             for epoch in range(self.args.n_epochs):
                 for i, data in enumerate(loader):
-                    inputs, labels, not_aug_inputs = data
+                    inputs, labels, task, not_aug_inputs = data
                     inputs, labels = inputs.to(self.device), labels.to(self.device)
                     opt.zero_grad()
                     with torch.no_grad():
-                        feats = self.backbone(inputs)
+                        feats = self.net(inputs, outputs='features')
                     mask = self.eye[(self.current_task + 1) * self.cpt - 1] ^ self.eye[self.current_task * self.cpt - 1]
-                    outputs = self.head(feats)[:, mask]
+                    outputs = self.net.classifier(feats)[:, mask]
                     loss = self.loss(outputs, labels - self.current_task * self.cpt)
                     loss.backward()
                     opt.step()
 
             logits = []
             with torch.no_grad():
-                for i in range(0, loader.dataset.data.shape[0], self.args.batch_size):
-                    inputs = torch.stack([loader.dataset.__getitem__(j)[2]
+                for i in range(0, loader.dataset.dataset.data.shape[0], self.args.batch_size):
+                    inputs = torch.stack([self.totensor(loader.dataset.dataset.__getitem__(j)[0])
                                           for j in range(i, min(i + self.args.batch_size,
-                                                         len(loader.dataset)))])
+                                                         len(loader.dataset.dataset)))])
                     log = self.net(inputs.to(self.device)).cpu()
                     logits.append(log)
-            setattr(loader.dataset, 'logits', torch.cat(logits))
+            setattr(loader.dataset.dataset, 'logits', torch.cat(logits))
         self.net.train()
 
         self.current_task += 1
